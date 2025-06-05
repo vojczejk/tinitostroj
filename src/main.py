@@ -22,7 +22,13 @@ def main():
     
     # Initialize sound crossfade
     sound_player = Crossfade()
-    sound_files = sys.argv[1:]
+    directory = sys.argv[1]
+    sound_files = [
+        os.path.join(directory, f)
+        for f in os.listdir(directory)
+        if os.path.isfile(os.path.join(directory, f))
+    ]
+    
     if not sound_files:
         print("No sound files provided.")
         return
