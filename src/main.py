@@ -21,10 +21,10 @@ def main():
     GPIO.setmode(GPIO.BCM)
     
     # Setup sound select encoder with GPIO pins 17 and 18
-    sound_select_encoder = RotaryEncoder(pin_a=17, pin_b=18)
+    sound_select_encoder = RotaryEncoder(pin_a=17, pin_b=27)
     
     # Setup volume encoder with GPIO pins 27 and 22
-    volume_encoder = RotaryEncoder(pin_a=27, pin_b=22, max=100, min=0, start=50)
+    volume_encoder = RotaryEncoder(pin_a=22, pin_b=23, max=100, min=0, start=99)
     
     # Initialize sound crossfade
     sound_player = Crossfade()
@@ -33,21 +33,27 @@ def main():
     if not sound_files:
         print("No sound files provided.")
         return
+    sound_player.preload_sounds(sound_files)
     current_index = 0
     last_select_position = sound_select_encoder.read_position()
     sound_player.play_sound(sound_files[current_index])
 
     last_volume = None
 
+
+
     try:
+        counter = 0 
         while True:
             sound_select_knob = sound_select_encoder.read_position()
             volume_knob = volume_encoder.read_position()
-            print_tui_table(
-                sound_select_knob=sound_select_knob,
-                volume_knob=volume_knob,
-                current_sound=sound_files[current_index]
-            )
+            if counter > 50:
+                print_tui_table(
+                    sound_select_knob=sound_select_knob,
+                    volume_knob=volume_knob,
+                    current_sound=sound_files[current_index]
+                )
+                counter = 0
             if last_volume != volume_knob:
                 os.system(f"amixer sset 'PCM' {volume_knob}% > /dev/null 2>&1")
                 last_volume = volume_knob
@@ -55,10 +61,11 @@ def main():
                 direction = 1 if sound_select_knob > last_select_position else -1
                 new_index = current_index + direction
                 if 0 <= new_index < len(sound_files):
-                    sound_player.crossfade(sound_files[current_index], sound_files[new_index], duration=2)
+                    sound_player.crossfade(sound_files[current_index], sound_files[new_index], duration=0.5)
                     current_index = new_index
                 last_select_position = sound_select_knob
-            time.sleep(0.5)
+            time.sleep(0.01)
+            counter += 1
     except KeyboardInterrupt:
         pass
     finally:
