@@ -2,7 +2,7 @@ import pygame
 
 class Crossfade:
     def __init__(self):
-        pygame.mixer.pre_init(frequency=48000, buffer=4096)
+        pygame.mixer.pre_init(buffer=4096)
         pygame.mixer.init()
         self.current_channel = pygame.mixer.Channel(0)
         self.next_channel = pygame.mixer.Channel(1)
@@ -14,7 +14,9 @@ class Crossfade:
         """Preload all sound files into memory"""
         for file in sound_files:
             if file not in self.sounds:
+                print("Preloading sound:", file)
                 self.sounds[file] = pygame.mixer.Sound(file)
+        print("All sounds preloaded.")
 
     def play_sound(self, sound_file):
         if self.current_file == sound_file:
@@ -23,7 +25,7 @@ class Crossfade:
         if sound is None:
             sound = pygame.mixer.Sound(sound_file)
             self.sounds[sound_file] = sound
-        self.current_channel.play(sound, fade_ms=500)
+        self.current_channel.play(sound, loops=-1, fade_ms=500)
         self.current_sound = sound
         self.current_file = sound_file
 
@@ -36,7 +38,7 @@ class Crossfade:
             self.sounds[sound_file_2] = next_sound
         fade_ms = int(duration * 1000)
         self.current_channel.fadeout(fade_ms)
-        self.next_channel.play(next_sound, fade_ms=fade_ms)
+        self.next_channel.play(next_sound, loops=-1, fade_ms=fade_ms)
         self.current_channel, self.next_channel = self.next_channel, self.current_channel
         self.current_sound = next_sound
         self.current_file = sound_file_2

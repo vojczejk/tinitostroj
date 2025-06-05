@@ -1,5 +1,5 @@
 class RotaryEncoder:
-    def __init__(self, pin_a, pin_b, max=None, min=None, start=0):
+    def __init__(self, pin_a, pin_b, max=None, min=None, start=0, wrap=False):
         import RPi.GPIO as GPIO
         self.GPIO = GPIO  # Store GPIO as an instance attribute
         self.pin_a = pin_a
@@ -7,6 +7,7 @@ class RotaryEncoder:
         self.max = max
         self.min = min
         self.position = start
+        self.wrap = wrap
 
         self.GPIO.setmode(self.GPIO.BCM)
         self.GPIO.setup(pin_a, self.GPIO.IN)
@@ -23,9 +24,15 @@ class RotaryEncoder:
             self.position -= 1
 
         if self.max is not None and self.position > self.max:
-            self.position = self.max
+            if self.wrap and self.min is not None:
+                self.position = self.min
+            else:
+                self.position = self.max
         if self.min is not None and self.position < self.min:
-            self.position = self.min
+            if self.wrap and self.max is not None:
+                self.position = self.max
+            else:
+                self.position = self.min
 
     def read_position(self):
         return self.position
